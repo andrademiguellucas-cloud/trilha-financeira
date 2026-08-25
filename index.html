@@ -28,10 +28,11 @@
                 <li><a href="#biblioteca">Biblioteca</a></li>
             </ul>
         </nav>
-        <button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" aria-label="Ouvir o conteúdo principal da página">
+        <button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" aria-describedby="audioStatus" aria-label="Ouvir o conteúdo principal da página">
             <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
             <span>Ouvir texto</span>
         </button>
+        <span id="audioStatus" class="sr-only" aria-live="polite"></span>
     </header>
 
     <main id="conteudo-principal" tabindex="-1">

@@ -179,45 +179,65 @@ function inicializarGraficos(elPizza, elBarras) {
 function inicializarLeituraEmVozAlta() {
     const botaoAudio = document.getElementById('audioToggle');
     const conteudoPrincipal = document.getElementById('conteudo-principal');
+    const statusAudio = document.getElementById('audioStatus');
 
-    if (!botaoAudio || !conteudoPrincipal || !('speechSynthesis' in window)) {
+    if (!botaoAudio || !conteudoPrincipal || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
         if (botaoAudio) botaoAudio.hidden = true;
         return;
     }
 
+    const sintese = window.speechSynthesis;
     const textoBotao = botaoAudio.querySelector('span');
     let leituraAtiva = null;
+    let estaLendo = false;
+
     const atualizarBotao = (tocando) => {
+        estaLendo = tocando;
         botaoAudio.setAttribute('aria-pressed', String(tocando));
         botaoAudio.setAttribute('aria-label', tocando ? 'Parar leitura em voz alta' : 'Ouvir o conteúdo principal da página');
         textoBotao.textContent = tocando ? 'Parar áudio' : 'Ouvir texto';
+        if (statusAudio) statusAudio.textContent = tocando ? 'Leitura em voz alta iniciada.' : 'Leitura em voz alta encerrada.';
     };
 
+    const obterVozEmPortugues = () => sintese.getVoices().find((voz) => voz.lang.toLowerCase() === 'pt-br')
+        || sintese.getVoices().find((voz) => voz.lang.toLowerCase().startsWith('pt'));
+
     botaoAudio.addEventListener('click', () => {
-        if (speechSynthesis.speaking || speechSynthesis.pending) {
-            speechSynthesis.cancel();
+        if (estaLendo || sintese.speaking || sintese.pending) {
+            sintese.cancel();
             leituraAtiva = null;
             atualizarBotao(false);
             return;
         }
 
-        const leitura = new SpeechSynthesisUtterance(conteudoPrincipal.innerText.replace(/\s+/g, ' ').trim());
+        const texto = conteudoPrincipal.textContent.replace(/\s+/g, ' ').trim();
+        if (!texto) return;
+
+        const leitura = new window.SpeechSynthesisUtterance(texto);
         leitura.lang = 'pt-BR';
         leitura.rate = 0.95;
+        leitura.voice = obterVozEmPortugues() || null;
         leitura.onend = () => {
-            if (leituraAtiva === leitura) atualizarBotao(false);
+            if (leituraAtiva === leitura) {
+                leituraAtiva = null;
+                atualizarBotao(false);
+            }
         };
         leitura.onerror = () => {
-            if (leituraAtiva === leitura) atualizarBotao(false);
+            if (leituraAtiva === leitura) {
+                leituraAtiva = null;
+                atualizarBotao(false);
+                if (statusAudio) statusAudio.textContent = 'Não foi possível iniciar a leitura em voz alta neste navegador.';
+            }
         };
 
-        speechSynthesis.cancel();
         leituraAtiva = leitura;
-        speechSynthesis.speak(leitura);
+        sintese.resume();
+        sintese.speak(leitura);
         atualizarBotao(true);
     });
 
-    window.addEventListener('pagehide', () => speechSynthesis.cancel());
+    window.addEventListener('pagehide', () => sintese.cancel());
 }
 
 // 3. INICIALIZAR OS DOIS GRÁFICOS QUANDO A PÁGINA CARREGAR
