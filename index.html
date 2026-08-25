@@ -28,8 +28,13 @@
                 <li><a href="#biblioteca">Biblioteca</a></li>
             </ul>
         </nav>
+        <button id="audioToggle" class="audio-toggle" type="button" aria-pressed="false" aria-label="Ouvir o conteúdo principal da página">
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            <span>Ouvir texto</span>
+        </button>
     </header>
 
+    <main id="conteudo-principal" tabindex="-1">
     <!-- 2. HERO SECTION (APRESENTAÇÃO) -->
     <section id="inicio">
         <h1>Aprenda a cuidar do seu dinheiro de forma simples e sem complicação!</h1>
@@ -155,7 +160,7 @@
                 </aside>
 
                 <!-- Conteúdo dos Artigos -->
-                <main id="articlesList">
+                <div id="articlesList">
                     <article class="wiki-article" id="artigo-juros">
                         <h3>O que são Juros Compostos?</h3>
                         <p>Os <span class="highlight-term">Juros Compostos</span> funcionam como uma bola de neve. Quando você investe, são os juros rendendo sobre os próprios juros, fazendo seu dinheiro crescer mais rápido com o passar do tempo. Porém, quando você deve ao banco, a bola de neve rola contra você, fazendo a dívida crescer absurdamente rápido de um mês para o outro.</p>
@@ -170,10 +175,11 @@
                         <h3>Entendendo o Cartão de Crédito</h3>
                         <p>O <span class="highlight-term">Cartão de Crédito</span> não é uma extensão do seu salário, ele é um empréstimo de curto prazo que você precisa pagar no mês seguinte. O maior perigo é pagar apenas o "valor mínimo" da fatura. Ao fazer isso, você entra no chamado crédito rotativo, que possui uma das taxas de juros mais caras e abusivas do mercado brasileiro.</p>
                     </article>
-                </main>
+                </div>
             </div>
         </div>
     </section>
+    </main>
 
     <!-- 7. RODAPÉ -->
     <footer>
@@ -194,5 +200,17 @@
     </footer>
 
     <script src="script.js" defer></script>
+
+    <!-- Widget oficial VLibras: tradução do conteúdo para Libras. -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
 </body>
 </html>

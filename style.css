@@ -105,6 +105,32 @@ nav a:hover {
     background-color: rgba(255,255,255,0.15);
 }
 
+.audio-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--white);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.audio-toggle:hover,
+.audio-toggle:focus-visible {
+    background-color: rgba(255, 255, 255, 0.15);
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+.audio-toggle[aria-pressed="true"] {
+    background-color: var(--white);
+    color: var(--primary-color);
+}
+
 /* ==========================================================================
    3. HERO SECTION (APRESENTAÇÃO BANNER)
    ========================================================================== */
@@ -207,7 +233,7 @@ tr:hover {
    ========================================================================== */
 #pesquisa-dados .charts-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
     gap: 40px;
     margin-top: 2.5rem;
 }
@@ -218,6 +244,7 @@ tr:hover {
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     text-align: center;
+    min-width: 0;
 }
 
 .chart-wrapper {
@@ -225,6 +252,16 @@ tr:hover {
     margin: 20px auto;
     height: 320px;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.chart-wrapper canvas {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+    height: 100% !important;
 }
 
 .footnote {
@@ -302,7 +339,7 @@ aside a:hover {
     color: #2980b9;
 }
 
-main {
+#articlesList {
     flex: 3;
 }
 
@@ -388,6 +425,10 @@ footer h4 {
         padding: 1.5rem;
     }
 
+    .chart-wrapper {
+        height: 280px;
+    }
+
     .wiki-layout {
         flex-direction: column;
     }
@@ -398,5 +439,19 @@ footer h4 {
         border-bottom: 1px solid #e0e0e0;
         padding-right: 0;
         padding-bottom: 20px;
+    }
+}
+
+@media (max-width: 380px) {
+    .chart-box {
+        padding: 1rem;
+    }
+
+    .chart-wrapper {
+        height: 250px;
+    }
+
+    .audio-toggle {
+        font-size: 0.82rem;
     }
 }

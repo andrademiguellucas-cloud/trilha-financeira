@@ -1,5 +1,6 @@
 const dadosEndividamento = [78, 22];
 const dadosViloes = [45, 30, 18, 7];
+const labelsViloes = ['Cartão/Cheque Especial', 'Contas Altas', 'Compras Impulsivas', 'Tarifas'];
 
 // 1. CONFIGURAÇÃO DO GRÁFICO DE PIZZA (ENDIVIDAMENTO)
 const configPizza = {
@@ -18,10 +19,16 @@ const configPizza = {
 };
 
 // 2. CONFIGURAÇÃO DO GRÁFICO DE BARRAS (VILÕES)
-const configBarras = {
+function criarConfigBarras() {
+    const telaPequena = window.matchMedia('(max-width: 480px)').matches;
+    const labels = telaPequena
+        ? [['Cartão/Cheque', 'Especial'], 'Contas Altas', ['Compras', 'Impulsivas'], 'Tarifas']
+        : labelsViloes;
+
+    return {
     type: 'bar',
     data: {
-        labels: ['Cartão/Cheque Especial', 'Contas Altas', 'Compras Impulsivas', 'Tarifas'],
+        labels,
         datasets: [{
             label: '% de Impacto',
             data: dadosViloes,
@@ -31,8 +38,33 @@ const configBarras = {
     options: {
         indexAxis: 'y',
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                right: telaPequena ? 24 : 36
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                max: 50,
+                ticks: {
+                    font: { size: telaPequena ? 10 : 12 },
+                    callback: (valor) => `${valor}%`
+                }
+            },
+            y: {
+                ticks: {
+                    font: { size: telaPequena ? 10 : 12 },
+                    autoSkip: false
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
     }
+    };
 };
 
 function ajustarCanvas(canvas) {
@@ -86,15 +118,16 @@ function desenharGraficoPizza(canvas) {
 
 function desenharGraficoBarras(canvas) {
     const { ctx, largura } = ajustarCanvas(canvas);
-    const labels = configBarras.data.labels;
-    const margemEsquerda = 150;
+    const labels = labelsViloes;
+    const telaPequena = largura <= 480;
+    const margemEsquerda = telaPequena ? 100 : 150;
     const margemTopo = 28;
-    const larguraMaxima = Math.max(largura - margemEsquerda - 44, 120);
-    const alturaBarra = 32;
-    const espaco = 24;
+    const larguraMaxima = Math.max(largura - margemEsquerda - (telaPequena ? 32 : 44), 70);
+    const alturaBarra = telaPequena ? 26 : 32;
+    const espaco = telaPequena ? 20 : 24;
     const maiorValor = Math.max(...dadosViloes);
 
-    ctx.font = '13px Arial, sans-serif';
+    ctx.font = `${telaPequena ? 10 : 13}px Arial, sans-serif`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
 
@@ -103,7 +136,10 @@ function desenharGraficoBarras(canvas) {
         const larguraBarra = (valor / maiorValor) * larguraMaxima;
 
         ctx.fillStyle = '#34495e';
-        ctx.fillText(labels[indice], margemEsquerda - 10, y + alturaBarra / 2);
+        const texto = telaPequena && labels[indice] === 'Cartão/Cheque Especial'
+            ? 'Cartão/Cheque'
+            : labels[indice];
+        ctx.fillText(texto, margemEsquerda - 8, y + alturaBarra / 2);
 
         ctx.fillStyle = '#1b4d3e';
         ctx.fillRect(margemEsquerda, y, larguraBarra, alturaBarra);
@@ -131,7 +167,7 @@ function desenharLegenda(ctx, labels, cores, x, y) {
 function inicializarGraficos(elPizza, elBarras) {
     if (typeof Chart !== 'undefined') {
         if (elPizza) new Chart(elPizza.getContext('2d'), configPizza);
-        if (elBarras) new Chart(elBarras.getContext('2d'), configBarras);
+        if (elBarras) new Chart(elBarras.getContext('2d'), criarConfigBarras());
         return;
     }
 
@@ -140,12 +176,57 @@ function inicializarGraficos(elPizza, elBarras) {
     if (elBarras) desenharGraficoBarras(elBarras);
 }
 
+function inicializarLeituraEmVozAlta() {
+    const botaoAudio = document.getElementById('audioToggle');
+    const conteudoPrincipal = document.getElementById('conteudo-principal');
+
+    if (!botaoAudio || !conteudoPrincipal || !('speechSynthesis' in window)) {
+        if (botaoAudio) botaoAudio.hidden = true;
+        return;
+    }
+
+    const textoBotao = botaoAudio.querySelector('span');
+    let leituraAtiva = null;
+    const atualizarBotao = (tocando) => {
+        botaoAudio.setAttribute('aria-pressed', String(tocando));
+        botaoAudio.setAttribute('aria-label', tocando ? 'Parar leitura em voz alta' : 'Ouvir o conteúdo principal da página');
+        textoBotao.textContent = tocando ? 'Parar áudio' : 'Ouvir texto';
+    };
+
+    botaoAudio.addEventListener('click', () => {
+        if (speechSynthesis.speaking || speechSynthesis.pending) {
+            speechSynthesis.cancel();
+            leituraAtiva = null;
+            atualizarBotao(false);
+            return;
+        }
+
+        const leitura = new SpeechSynthesisUtterance(conteudoPrincipal.innerText.replace(/\s+/g, ' ').trim());
+        leitura.lang = 'pt-BR';
+        leitura.rate = 0.95;
+        leitura.onend = () => {
+            if (leituraAtiva === leitura) atualizarBotao(false);
+        };
+        leitura.onerror = () => {
+            if (leituraAtiva === leitura) atualizarBotao(false);
+        };
+
+        speechSynthesis.cancel();
+        leituraAtiva = leitura;
+        speechSynthesis.speak(leitura);
+        atualizarBotao(true);
+    });
+
+    window.addEventListener('pagehide', () => speechSynthesis.cancel());
+}
+
 // 3. INICIALIZAR OS DOIS GRÁFICOS QUANDO A PÁGINA CARREGAR
 document.addEventListener('DOMContentLoaded', () => {
     const elPizza = document.getElementById('chartEndividamento');
     const elBarras = document.getElementById('chartViloes');
 
     inicializarGraficos(elPizza, elBarras);
+    inicializarLeituraEmVozAlta();
 
     // 4. SISTEMA DE BUSCA DA BIBLIOTECA
     const campoBusca = document.getElementById('wikiSearch');
